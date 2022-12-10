@@ -186,9 +186,13 @@ See https://zevlg.github.io/telega.el/#settings-for-emacs-as-daemon"
   :type 'boolean
   :group 'telega)
 
-(defcustom telega-use-one-line-preview-for
-  (when (fboundp 'svg-embed-base-uri-image) 'all)
-  "Chat Filter for chats where to show one-line previews for photos/videos.
+(defcustom telega-use-svg-base-uri (fboundp 'svg-embed-base-uri-image)
+  "Non-nil to use `:base-uri' SVG functionality."
+  :type 'boolean
+  :group 'telega)
+
+(defcustom telega-use-one-line-preview-for (when telega-use-svg-base-uri 'all)
+  "Chat Temex for chats where to show one-line previews for photos/videos.
 Used only if `telega-use-images' is non-nil.
 Enable it only if you have `:base-uri' SVG functionality, otherwise
 performance might suffer."
@@ -331,6 +335,14 @@ If nil, autogenerate the command according to all telega docker settings.
 %w - substituted with current Telegram account database directory.
 %i - substituted with infered docker image name."
   :package-version '(telega . "0.7.40")
+  :type '(or nil string)
+  :group 'telega-docker)
+
+(defcustom telega-docker-run-arguments nil
+  "Additional arguments just after \"run\" command of the docker.
+For podman setup you might want to use \"--userns=keep-id\" as value
+for the `telega-docker-run-arguments'."
+  :package-version '(telega . "0.8.75")
   :type '(or nil string)
   :group 'telega-docker)
 
@@ -1082,12 +1094,6 @@ Set to 0 to disable description in a webpage preview."
   :type 'boolean
   :group 'telega-user)
 
-(defcustom telega-company-username-show-avatars telega-user-show-avatars
-  "Non-nil to show avatars in the company annotation."
-  :package-version '(telega . "0.7.44")
-  :type 'boolean
-  :group 'telega-user)
-
 (defcustom telega-user-show-relationship nil
   "*Non-nil to show user relationship with me.
 Used when showing chat members list."
@@ -1099,6 +1105,25 @@ Used when showing chat members list."
   :package-version '(telega . "0.6.30")
   :type 'integer
   :group 'telega-user)
+
+
+(defgroup telega-company nil
+  "Customization for telega company completion."
+  :group 'telega)
+
+(defcustom telega-company-username-show-avatars telega-user-show-avatars
+  "Non-nil to show avatars in the company annotation."
+  :package-version '(telega . "0.7.44")
+  :type 'boolean
+  :group 'telega-company)
+
+(defcustom telega-company-username-markup nil
+  "Markup to use for usernames completion."
+  :package-version '(telega . "0.8.82")
+  :type '(choice (const :tag "No markup" nil)
+                 (const :tag "Markdown1" "markdown1")
+                 (const :tag "Markdown2" "markdown2"))
+  :group 'telega-company)
 
 
 (defgroup telega-chat nil

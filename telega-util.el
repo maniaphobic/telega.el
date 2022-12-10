@@ -237,7 +237,8 @@ Specify EXT with leading `.'."
   "Embed IMAGE possible using `svg-embed-base-uri-image'.
 IMAGE could be a list of two elements \\(RELATIVE-FNAME BASE-DIR\\),
 so new Emacs `svg-embed-base-uri-image' functionality could be used."
-  (if (and (not datap) (fboundp 'svg-embed-base-uri-image)
+  (if (and telega-use-svg-base-uri
+           (not datap)
            ;; NOTE: embedding using `:base-uri' does not work under Windows
            ;; see https://github.com/zevlg/telega.el/issues/367
            (not (eq (framep-on-display (telega-x-frame)) 'w32))
@@ -1026,9 +1027,14 @@ Return nil if STR does not specify an org mode link."
       ;; modifies also text of the entity, so we shift entities by
       ;; `offset-shift' to keep correct offset values.
       (seq-doseq (ent (plist-get fmt-text :entities))
+        ;; NOTE: In emacs27 `cl-incf' with `plist-get' does not work,
+        ;; thats why we use `plist-put' instead. See
+        ;; https://t.me/emacs_ru/454836
+        (plist-put ent :offset (+ (plist-get ent :offset) offset-shift))
+
         (when-let* ((ent-type (plist-get ent :type))
                     (ent-len (plist-get ent :length))
-                    (beg (cl-incf (plist-get ent :offset) offset-shift))
+                    (beg (plist-get ent :offset))
                     (end (+ beg ent-len))
                     (pre-p (eq 'textEntityTypePre (telega--tl-type ent-type)))
                     (text (plist-get fmt-text :text))
@@ -2285,7 +2291,8 @@ Binds current symbol to SYM-BIND."
         (if (stringp telega-use-docker)
             telega-use-docker
           "docker")
-        (format " run --rm --privileged -i -v %s:%s%s"
+        (format " run %s --rm --privileged -i -v %s:%s%s"
+                (or telega-docker-run-arguments "")
                 telega-directory telega-directory
                 (if selinux-p ":z" ""))
         (when telega-docker--cidfile

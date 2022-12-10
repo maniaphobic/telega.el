@@ -143,7 +143,9 @@ with one argument - stickerset."
 
 (defun telega-stickerset-installed-p (sset)
   "Return non-nil if sticker set SSET is installed."
-  (member (plist-get sset :id) telega--stickersets-installed-ids))
+  (or (member (plist-get sset :id) telega--stickersets-installed-ids)
+      (cl-find (plist-get sset :id) telega--stickersets-custom-emojis
+               :key (telega--tl-prop :id) :test #'equal)))
 
 (defun telega-sticker--dice-get (dice-value &optional locally-p callback)
   "Return sticker for the DICE-VALUE.
@@ -354,7 +356,7 @@ Return path to png file."
          (img-file (or (plist-get sticker :telega-ffplay-frame-filename)
                        (when-let ((fn (telega--tl-get filename :local :path)))
                          (if (or (fboundp 'imagemagick-types)
-;                                 (image-type-available-p 'webp)
+                                 (image-type-available-p 'webp)
                                  (not (equal (file-name-extension fn) "webp")))
                              fn
                            (telega-sticker--webp-to-png fn)))))
